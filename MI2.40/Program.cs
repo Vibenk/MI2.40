@@ -172,8 +172,10 @@ class DiscFlipper : AbsztraktÁllapot
     public override bool CélÁllapotE()
     {
         // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
-        bool[] targetState = discs = new bool[13] { false, true, true, true, true, true, true, true, true, true, true, true, true };
+        bool[] targetState = new bool[13] { true, false, true, true, true, false, true, true, true, true, true, true, false };
+        //        bool[] targetState = new bool[13] { true, true, true, true, true, true, true, true, true, true, true, true, false };
 
+        Console.WriteLine(discs.SequenceEqual(targetState).ToString());
         return discs.SequenceEqual(targetState);
     }
 
@@ -209,12 +211,13 @@ class DiscFlipper : AbsztraktÁllapot
         else
         {
             this.discs = mentes.discs;
+            Console.WriteLine("Klón");
             return false;
         }
     }
     public override int OperátorokSzáma()
     {
-        return 13;
+        return 12;
     }
 
     public override bool SzuperOperátor(int i)
@@ -234,7 +237,7 @@ class DiscFlipper : AbsztraktÁllapot
             case 10: return op(10);
             case 11: return op(11);
             case 12: return op(12);
-            case 13: return op(13);
+ //           case 13: return op(13);
             default: return false;
         }
     }
@@ -535,7 +538,8 @@ class Program
         Console.WriteLine("Korongforgató 2.40-es feladat megoldása");
         startCsúcs = new Csúcs(new DiscFlipper());
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
-        kereső = new MélységiKeresés(startCsúcs, true);
+        //        kereső = new MélységiKeresés(startCsúcs, true);
+        kereső = new BackTrack(startCsúcs, 0, true);
         kereső.megoldásKiírása(kereső.Keresés());
         Console.ReadLine();
     }
