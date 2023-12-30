@@ -172,8 +172,8 @@ class DiscFlipper : AbsztraktÁllapot
     public override bool CélÁllapotE()
     {
         // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
-        bool[] targetState = new bool[13] { true, false, true, true, true, false, true, true, true, true, true, true, false };
-        //        bool[] targetState = new bool[13] { true, true, true, true, true, true, true, true, true, true, true, true, false };
+        //        bool[] targetState = new bool[13] { true, false, true, true, true, false, true, true, true, true, true, true, false };
+                bool[] targetState = new bool[13] { false, true, true, true, true, true, true, true, true, true, true, true, true };
 
         Console.WriteLine(discs.SequenceEqual(targetState).ToString());
         return discs.SequenceEqual(targetState);
@@ -190,17 +190,17 @@ class DiscFlipper : AbsztraktÁllapot
         if (!PreOp(startPosition)) return false;
         DiscFlipper mentes = (DiscFlipper)Clone();
 
-        Console.WriteLine();
-        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
-        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
+ //       Console.WriteLine();
+ //       Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
+ //       Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
         for (int i = 0; i < 4; i++)
         {
             // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
             // a körkörös elrendezést szimulálva
             discs[(startPosition + i) % 13] = !discs[(startPosition + i) % 13];
         }
-        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
-        Console.WriteLine();
+//        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
+//        Console.WriteLine();
 
         
         // Bent marad a kódban, bár nem tudunk valójában kilépni az állapottérből
@@ -217,7 +217,7 @@ class DiscFlipper : AbsztraktÁllapot
     }
     public override int OperátorokSzáma()
     {
-        return 12;
+        return 13;
     }
 
     public override bool SzuperOperátor(int i)
@@ -408,6 +408,11 @@ class BackTrack : GráfKereső
     {
         int mélység = aktCsúcs.GetMélység();
         // mélységi korlát vizsgálata
+
+        //
+        Console.WriteLine("Mélység:" + mélység);
+        //
+
         if (korlát > 0 && mélység >= korlát) return null;
         // emlékezet használata kör kiszűréséhez
         Csúcs aktSzülő = null;
@@ -417,6 +422,8 @@ class BackTrack : GráfKereső
             // Ellenőrzöm, hogy jártam-e ebben az állapotban. Ha igen, akkor visszalépés.
             if (aktCsúcs.Equals(aktSzülő)) return null;
             // Visszafelé haladás a szülői láncon.
+            Console.WriteLine("Visszafelé haladás a szülői láncon.");
+            //
             aktSzülő = aktSzülő.GetSzülő();
         }
         if (aktCsúcs.TerminálisCsúcsE())
@@ -435,6 +442,9 @@ class BackTrack : GráfKereső
             // Kipróbálom az i.dik alapoperátort. Alkalmazható?
             if (újCsúcs.SzuperOperátor(i))
             {
+                //
+                Console.WriteLine("Operátor sikeres használata:" + i);
+                //
                 // Ha igen, rekurzívan meghívni önmagam az új csúcsra.
                 // Ha nem null értéket ad vissza, akkor megvan a megoldás.
                 // Ha null értéket, akkor ki kell próbálni a következő alapoperátort.
@@ -539,7 +549,7 @@ class Program
         startCsúcs = new Csúcs(new DiscFlipper());
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         //        kereső = new MélységiKeresés(startCsúcs, true);
-        kereső = new BackTrack(startCsúcs, 0, true);
+        kereső = new BackTrack(startCsúcs, 15, true);
         kereső.megoldásKiírása(kereső.Keresés());
         Console.ReadLine();
     }
