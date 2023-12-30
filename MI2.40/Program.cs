@@ -175,7 +175,7 @@ class DiscFlipper : AbsztraktÁllapot
         //        bool[] targetState = new bool[13] { true, false, true, true, true, false, true, true, true, true, true, true, false };
                 bool[] targetState = new bool[13] { false, true, true, true, true, true, true, true, true, true, true, true, true };
 
-        Console.WriteLine(discs.SequenceEqual(targetState).ToString());
+//        Console.WriteLine(discs.SequenceEqual(targetState).ToString());
         return discs.SequenceEqual(targetState);
     }
 
@@ -313,6 +313,7 @@ class Csúcs
         {
             // Új gyermek csúcsot készítek.
             Csúcs újCsúcs = new Csúcs(this);
+ 
             // Kiprobálom az i.dik alapoperátort. Alkalmazható?
             if (újCsúcs.SzuperOperátor(i))
             {
@@ -548,8 +549,8 @@ class Program
         Console.WriteLine("Korongforgató 2.40-es feladat megoldása");
         startCsúcs = new Csúcs(new DiscFlipper());
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
-        //        kereső = new MélységiKeresés(startCsúcs, true);
-        kereső = new BackTrack(startCsúcs, 15, true);
+        kereső = new MélységiKeresés(startCsúcs, true);
+//        kereső = new BackTrack(startCsúcs, 12, true);
         kereső.megoldásKiírása(kereső.Keresés());
         Console.ReadLine();
     }
