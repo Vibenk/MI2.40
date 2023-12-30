@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
-/// <summary>
+﻿/// <summary>
 /// Minden állapot osztály őse.
 /// </summary>
 abstract class AbsztraktÁllapot : ICloneable
@@ -46,8 +44,6 @@ abstract class AbsztraktÁllapot : ICloneable
 /// A VakÁllapot csak a szemléltetés kedvért van itt.
 /// Megmutatja, hogy kell az operátorokat megírni és bekötni a szuper operátorba.
 /// </summary>
-
-/*
 abstract class VakÁllapot : AbsztraktÁllapot
 {
     // Itt kell megadni azokat a mezőket, amelyek tartalmazzák a belső állapotot.
@@ -145,121 +141,255 @@ abstract class VakÁllapot : AbsztraktÁllapot
         return 5;
     }
 }
-*/
 
 
-
-
-// 2.40
-class DiscFlipper : AbsztraktÁllapot
+/// <summary>
+/// Ez a “éhes huszár” probléma állapottér reprezentációja.
+/// A huszárnak az állomás helyétől, a bal felső sarokból,
+/// el kell jutnia a kantinba, ami a jobb alsó sarokban van.
+/// A táblát egy (N+4)*(N+4) mátrixszal ábrázolom.
+/// A külső 2 széles rész margó, a belső rész a tábla.
+/// A margó használatával sokkal könnyebb megírni az ÁllapotE predikátumot.
+/// A 0 jelentése üres. Az 1 jelentése, itt van a ló.
+/// 3*3-mas tábla esetén a kezdő állapot:
+/// 0,0,0,0,0,0,0
+/// 0,0,0,0,0,0,0
+/// 0,0,1,0,0,0,0
+/// 0,0,0,0,0,0,0
+/// 0,0,0,0,0,0,0
+/// 0,0,0,0,0,0,0
+/// 0,0,0,0,0,0,0
+/// A fenti reprezentációból látszik, hogy elég csak a ló helyét nyilvántartani,
+/// mert a táblán csak a ló van. Így a kezdő állpot (bal felső sarokból indulunk):
+/// x = 2
+/// y = 2
+/// A célállapot (jobb alsó sarokba megyek):
+/// x = N+1
+/// y = N+1
+/// Operátorok:
+/// A lehetséges 8 ló lépés.
+/// </summary>
+class ÉhesHuszárÁllapot : AbsztraktÁllapot
 {
-
-    private bool[] discs;
-
-    public DiscFlipper()
+    // Alapértelmezetten egy 3*3-as sakktáblán fut.
+    static int N = 3;
+    // A belső állapotot leíró mezők.
+    int x, y;
+    // Beállítja a kezdő állapotra a belső állapotot.
+    public ÉhesHuszárÁllapot()
     {
-        // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
-        discs = new bool[13] { true, true, true, true, true, true, true, true, true, true, true, true, false };
-        Console.WriteLine("START:" + this.ToString());
+        x = 2; // A bal felső sarokból indulunk, ami a margó
+        y = 2; // miatt a (2,2) koordinátán van.
     }
-
-    public override bool ÁllapotE()
+    // Beállítja a kezdő állapotra a belső állapotot.
+    // Itt lehet megadni a tábla méretét is.
+    public ÉhesHuszárÁllapot(int n)
     {
-        // Nincsenek különösebb feltételek megadva, illetve az operátor művelet is úgy van megírva, hogy ne lépjen ki az állapottérből, így egy alapvizsgálat
-        // lett megadva, igaz, ha összesen 13 korongunk van
-        return discs.Length == 13;
+        x = 2;
+        y = 2;
+        N = n;
     }
     public override bool CélÁllapotE()
     {
-        // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
-        bool[] targetState = discs = new bool[13] { false, true, true, true, true, true, true, true, true, true, true, true, true };
-
-        return discs.SequenceEqual(targetState);
+        // A jobb alsó sarok a margó miatt a (N+1,N+1) helyen van.
+        return x == N + 1 && y == N + 1;
     }
-
-    private bool PreOp(int startPosition)
+    public override bool ÁllapotE()
     {
-        // Nincs a feladatban különösebb bemenő/előzetes feltétel
+        // a ló nem a margon van
+        return x >= 2 && y >= 2 && x <= N + 1 && y <= N + 1;
+    }
+    private bool preLóLépés(int x, int y)
+    {
+        // jó lólépés-e, ha nem akkor return false
+        if (!(x * y == 2 || x * y == -2)) return false;
         return true;
     }
-    private bool op(int startPosition)
+    /* Ez az operátorom, igaz ad vissza, ha alakalmazható, 
+    * egyébként hamisat.
+    * Paraméterek: 
+    * x: x irányú elmozdulás
+    * y: y irányú elmozdulás
+    * Az előfeltétel ellenőrzi, hogy az elmozdulás lólépés-e.
+    * Az utófeltétel ellenőrzi, hogy a táblán maradtunk-e.
+    * Példa:
+    * lóLépés(1,-2) jelentése felfelé 2-öt jobbra 1-et.
+    */
+    private bool lóLépés(int x, int y)
     {
-        // Bent marad a kódban, de valójában nincs szükség klónozásra, mert az előzetes feltétel mindig teljesül
-        if (!PreOp(startPosition)) return false;
-        DiscFlipper mentes = (DiscFlipper)Clone();
-
-        Console.WriteLine();
-        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
-        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
-        for (int i = 0; i < 4; i++)
-        {
-            // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
-            // a körkörös elrendezést szimulálva
-            discs[(startPosition + i) % 13] = !discs[(startPosition + i) % 13];
+        if (!preLóLépés(x, y)) return false;
+        // Ha az előfeltétel igaz, akkor megcsinálom az
+        // állapot átmenetet.
+        this.x += x;
+        this.y += y;
+        // Az utófeltétel mindig megegyezik az ÁllapotE-vel.
+        if (ÁllapotE()) return true;
+        // Ha az utófeltétel nem igaz, akkor vissza kell csinálni.
+        this.x -= x;
+        this.y -= y;
+        return false;
+    }
+    public override bool SzuperOperátor(int i)
+    {
+        switch (i)
+        { // itt sorolom fel a lehetséges 8 lólépést
+            case 0: return lóLépés(1, 2);
+            case 1: return lóLépés(1, -2);
+            case 2: return lóLépés(-1, 2);
+            case 3: return lóLépés(-1, -2);
+            case 4: return lóLépés(2, 1);
+            case 5: return lóLépés(2, -1);
+            case 6: return lóLépés(-2, 1);
+            case 7: return lóLépés(-2, -1);
+            default: return false;
         }
-        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
-        Console.WriteLine();
+    }
+    public override int OperátorokSzáma() { return 8; }
+    // A kiíratásnál kivonom x-ből és y-ból a margó szélességét.
+    public override string ToString() { return (x - 2) + " : " + (y - 2); }
+    public override bool Equals(Object a)
+    {
+        ÉhesHuszárÁllapot aa = (ÉhesHuszárÁllapot)a;
+        return aa.x == x && aa.y == y;
+    }
+    // Ha két példány egyenlő, akkor a hasítókódjuk is egyenlő.
+    public override int GetHashCode()
+    {
+        return x.GetHashCode() + y.GetHashCode();
+    }
+}
 
-        
-        // Bent marad a kódban, bár nem tudunk valójában kilépni az állapottérből
-        if (ÁllapotE())
+
+/// <summary>
+/// A "3 szerzetes és 3 kannibál" probléma állapottér reprezentációja.
+/// Illetve általánosítása akárhány szerzetesre és kannibálra.
+/// Probléma: 3 szerzet és 3 kannibál van a folyó bal partján.
+/// Át kell juttatni az összes embert a másik partra.
+/// Ehhez rendelkezésre áll egy két személyes csónak.
+/// Egy ember is elég az átjutáshoz, de kettőnél több ember nem fér el.
+/// Ha valaki átmegy a másik oldalra, akkor ki is kell szállni, nem maradhat a csónakban.
+/// A gond ott van, hogy ha valamelyik parton több kannibál van,
+/// mint szerzetes, akkor a kannibálok megeszik a szerzeteseket.
+/// Kezdő állapot:
+/// 3 szerzetes a bal oldalon.
+/// 3 kannibál a bal oldalon.
+/// A csónak a bal parton van.
+/// 0 szerzetes a jobb oldalon.
+/// 0 kannibál a jobb oldalon.
+/// Ezt az állapotot ezzel a rendezett 5-össel írjuk le:
+/// (3,3,'B',0,0)
+/// A célállapot:
+/// (0,0,'J',3,3)
+/// Operátor:
+/// Op(int sz, int k):
+/// sz darab szerzetes átmegy a másik oldalra és
+/// k darab kannibál átmegy a másik oldalra.
+/// Lehetséges paraméterezése:
+/// Op(1,0): 1 szerzetes átmegy a másik oldalra.
+/// Op(2,0): 2 szerzetes átmegy a másik oldalra.
+/// Op(1,1): 1 szerzetes és 1 kannibál átmegy a másik oldalra.
+/// Op(0,1): 1 kannibál átmegy a másik oldalra.
+/// Op(0,2): 2 kanibál átmegy a másik oldalra.
+/// </summary>
+class SzerzetesekÉsKannibálokÁllapot : AbsztraktÁllapot
+{
+    int sz; // ennyi szerzetes van összesen
+    int k; // ennyi kannibál van összesen
+    int szb; // szerzetesek száma a bal oldalon
+    int kb; // kannibálok száma a bal oldalon
+    char cs; // Hol a csónak? Értéke vagy 'B' vagy 'J'.
+    int szj; // szerzetesek száma a jobb oldalon
+    int kj; // kannibálok száma a jobb oldalon
+    public SzerzetesekÉsKannibálokÁllapot(int sz, int k) // beállítja a kezdő állapotot
+    {
+        this.sz = sz;
+        this.k = k;
+        szb = sz;
+        kb = k;
+        cs = 'B';
+        szj = 0;
+        kj = 0;
+    }
+    public override bool ÁllapotE()
+    { // igaz, ha a szerzetesek biztonságban vannak
+        return ((szb >= kb) || (szb == 0)) &&
+        ((szj >= kj) || (szj == 0));
+    }
+    public override bool CélÁllapotE()
+    {
+        // igaz, ha mindenki átért a jobb oldalra
+        return szj == sz && kj == k;
+    }
+    private bool preOp(int sz, int k)
+    {
+        // A csónak 2 személyes, legalább egy ember kell az evezéshez.
+        // Ezt végül is felesleges vizsgálni, mert a szuper operátor csak ennek megfelelően hívja.
+        if (sz + k > 2 || sz + k < 0 || sz < 0 || k < 0) return false;
+        // Csak akkor lehet átvinni sz szerzetest és
+        // k kannibált, ha a csónak oldalán van is legalább ennyi.
+        if (cs == 'B')
+            return szb >= sz && kb >= k;
+        else
+            return szj >= sz && kj >= k;
+    }
+    // Átvisz a másik oldalra sz darab szerzetes és k darab kannibált.
+    private bool op(int sz, int k)
+    {
+        if (!preOp(sz, k)) return false;
+        SzerzetesekÉsKannibálokÁllapot mentes = (SzerzetesekÉsKannibálokÁllapot)Clone();
+        if (cs == 'B')
         {
-            return true;
+            szb -= sz;
+            kb -= k;
+            cs = 'J';
+            szj += sz;
+            kj += k;
         }
         else
         {
-            this.discs = mentes.discs;
-            return false;
+            szb += sz;
+            kb += k;
+            cs = 'B';
+            szj -= sz;
+            kj -= k;
         }
+        if (ÁllapotE()) return true;
+        szb = mentes.szb;
+        kb = mentes.kb;
+        cs = mentes.cs;
+        szj = mentes.szj;
+        kj = mentes.kj;
+        return false;
     }
-    public override int OperátorokSzáma()
-    {
-        return 13;
-    }
-
+    public override int OperátorokSzáma() { return 5; }
     public override bool SzuperOperátor(int i)
     {
         switch (i)
         {
-            case 0: return op(0);
-            case 1: return op(1);
-            case 2: return op(2);
-            case 3: return op(3);
-            case 4: return op(4);
-            case 5: return op(5);
-            case 6: return op(6);
-            case 7: return op(7);
-            case 8: return op(8);
-            case 9: return op(9);
-            case 10: return op(10);
-            case 11: return op(11);
-            case 12: return op(12);
-            case 13: return op(13);
+            case 0: return op(0, 1);
+            case 1: return op(0, 2);
+            case 2: return op(1, 1);
+            case 3: return op(1, 0);
+            case 4: return op(2, 0);
             default: return false;
         }
     }
     public override string ToString()
     {
-        string returnString = "";
-        foreach (var disc in discs)
-        {
-            returnString += disc ? "P " : "K ";
-        }
-        return returnString;
+        return szb + "," + kb + "," + cs + "," + szj + "," + kj;
     }
-
-    public override bool Equals(object a)
+    public override bool Equals(Object a)
     {
-        DiscFlipper aa = (DiscFlipper)a;
-        return aa.discs.SequenceEqual(discs);
+        SzerzetesekÉsKannibálokÁllapot aa = (SzerzetesekÉsKannibálokÁllapot)a;
+        // szj és kj számítható, ezért nem kell vizsgálni
+        return aa.szb == szb && aa.kb == kb && aa.cs == cs;
     }
-
+    // Ha két példány egyenlő, akkor a hasítókódjuk is egyenlő.
     public override int GetHashCode()
     {
-        return discs.GetHashCode();
+        return szb.GetHashCode() + kb.GetHashCode() + cs.GetHashCode();
     }
 }
-
 
 /// <summary>
 /// A csúcs tartalmaz egy állapotot, a csúcs mélységét, és a csúcs szülőjét.
@@ -531,9 +661,19 @@ class Program
     {
         Csúcs startCsúcs;
         GráfKereső kereső;
-
-        Console.WriteLine("Korongforgató 2.40-es feladat megoldása");
-        startCsúcs = new Csúcs(new DiscFlipper());
+        Console.WriteLine("Az éhes huszár problémát megoldjuk 4x4-es táblán.");
+        startCsúcs = new Csúcs(new ÉhesHuszárÁllapot(4));
+        Console.WriteLine("A kereső egy 10 mélységi korlátos és emlékezetes backtrack.");
+        kereső = new BackTrack(startCsúcs, 10, true);
+        kereső.megoldásKiírása(kereső.Keresés());
+        Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
+        kereső = new MélységiKeresés(startCsúcs, true);
+        kereső.megoldásKiírása(kereső.Keresés());
+        Console.WriteLine("A 3 szerzetes 3 kanibál problémát oldjuk meg.");
+        startCsúcs = new Csúcs(new SzerzetesekÉsKannibálokÁllapot(3, 3));
+        Console.WriteLine("A kereső egy 15 mélységi korlátos és emlékezetes backtrack.");
+        kereső = new BackTrack(startCsúcs, 15, true);
+        kereső.megoldásKiírása(kereső.Keresés());
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         kereső = new MélységiKeresés(startCsúcs, true);
         kereső.megoldásKiírása(kereső.Keresés());
