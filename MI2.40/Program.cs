@@ -440,6 +440,7 @@ class Csúcs
         {
             // Új gyermek csúcsot készítek.
             Csúcs újCsúcs = new Csúcs(this);
+
             // Kiprobálom az i.dik alapoperátort. Alkalmazható?
             if (újCsúcs.SzuperOperátor(i))
             {
@@ -535,6 +536,11 @@ class BackTrack : GráfKereső
     {
         int mélység = aktCsúcs.GetMélység();
         // mélységi korlát vizsgálata
+
+        //
+        Console.WriteLine("Mélység:" + mélység);
+        //
+
         if (korlát > 0 && mélység >= korlát) return null;
         // emlékezet használata kör kiszűréséhez
         Csúcs aktSzülő = null;
@@ -544,6 +550,8 @@ class BackTrack : GráfKereső
             // Ellenőrzöm, hogy jártam-e ebben az állapotban. Ha igen, akkor visszalépés.
             if (aktCsúcs.Equals(aktSzülő)) return null;
             // Visszafelé haladás a szülői láncon.
+            Console.WriteLine("Visszafelé haladás a szülői láncon.");
+            //
             aktSzülő = aktSzülő.GetSzülő();
         }
         if (aktCsúcs.TerminálisCsúcsE())
@@ -562,6 +570,10 @@ class BackTrack : GráfKereső
             // Kipróbálom az i.dik alapoperátort. Alkalmazható?
             if (újCsúcs.SzuperOperátor(i))
             {
+                //
+                Console.WriteLine("Operátor sikeres használata:" + i);
+                //
+
                 // Ha igen, rekurzívan meghívni önmagam az új csúcsra.
                 // Ha nem null értéket ad vissza, akkor megvan a megoldás.
                 // Ha null értéket, akkor ki kell próbálni a következő alapoperátort.
@@ -661,7 +673,7 @@ class Program
     {
         Csúcs startCsúcs;
         GráfKereső kereső;
-        Console.WriteLine("Az éhes huszár problémát megoldjuk 4x4-es táblán.");
+/*        Console.WriteLine("Az éhes huszár problémát megoldjuk 4x4-es táblán.");
         startCsúcs = new Csúcs(new ÉhesHuszárÁllapot(4));
         Console.WriteLine("A kereső egy 10 mélységi korlátos és emlékezetes backtrack.");
         kereső = new BackTrack(startCsúcs, 10, true);
@@ -669,11 +681,11 @@ class Program
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         kereső = new MélységiKeresés(startCsúcs, true);
         kereső.megoldásKiírása(kereső.Keresés());
-        Console.WriteLine("A 3 szerzetes 3 kanibál problémát oldjuk meg.");
+        Console.WriteLine("A 3 szerzetes 3 kanibál problémát oldjuk meg.");*/
         startCsúcs = new Csúcs(new SzerzetesekÉsKannibálokÁllapot(3, 3));
-        Console.WriteLine("A kereső egy 15 mélységi korlátos és emlékezetes backtrack.");
+/*        Console.WriteLine("A kereső egy 15 mélységi korlátos és emlékezetes backtrack.");
         kereső = new BackTrack(startCsúcs, 15, true);
-        kereső.megoldásKiírása(kereső.Keresés());
+        kereső.megoldásKiírása(kereső.Keresés());*/
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         kereső = new MélységiKeresés(startCsúcs, true);
         kereső.megoldásKiírása(kereső.Keresés());
