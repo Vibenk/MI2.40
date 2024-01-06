@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using System.Reflection;
 using System.Text;
-/// <summary>
-/// Minden állapot osztály őse.
-/// </summary>
+
+// Keretrendszer
 abstract class AbsztraktÁllapot : ICloneable
 {
     // Megvizsgálja, hogy a belső állapot állapot-e.
@@ -43,132 +42,6 @@ abstract class AbsztraktÁllapot : ICloneable
     public override int GetHashCode() { return base.GetHashCode(); }
 }
 
-
-
-
-
-// 2.40
-class DiscFlipper : AbsztraktÁllapot
-{
-
-    private string discs;
-
-    public DiscFlipper(string discOrder)
-    {
-        // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
-        // @isti: itt egy "collection expression"-el hoztam létre a tömböt, ez tetszeni fog a tanárnak, mert olyan metodika,
-        // amit nem ismer, cserébe átlátható :)
-        discs = discOrder;
-        Console.WriteLine("Kezdeti állapot: " + this.ToString());
-    }
-
-    public override bool ÁllapotE()
-    {
-        // Nincsenek különösebb feltételek megadva, illetve az operátor művelet is úgy van megírva, hogy ne lépjen ki az állapottérből, így egy alapvizsgálat
-        // lett megadva, igaz, ha összesen 13 korongunk van
-        return discs.Length == 13;
-    }
-    public override bool CélÁllapotE()
-    {
-        // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
-
-        return discs == "KPPPPPPPPPPPP";
-    }
-
-    private bool PreOp(int startPosition)
-    {
-        // Nincs a feladatban különösebb bemenő/előzetes feltétel, így csak azt vizsgálom, hogy a startposition a tömb határain belül van-e
-        return startPosition < discs.Length;
-    }
-
-    private char flipString(char Color)
-    {
-        if (Color == char.Parse("P"))
-        {
-            return char.Parse("K");
-        }
-
-        return char.Parse("P");
-    }
-    private bool op(int startPosition)
-    {
-        if (!PreOp(startPosition)) return false;
-        DiscFlipper mentes = (DiscFlipper)Clone();
-
-        Console.WriteLine();
-        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
-        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
-        for (int i = 0; i < 4; i++)
-        {
-            // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
-            // a körkörös elrendezést szimulálva
-            StringBuilder stringBuilder = new StringBuilder(discs);
-            char discAtPosition = discs[(startPosition + i) % 13];
-            char flippedDisc = flipString(discAtPosition);
-            stringBuilder[(startPosition + i) % 13] = flippedDisc;
-            discs = stringBuilder.ToString();
-        }
-        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
-        Console.WriteLine();
-
-        
-        if (ÁllapotE())
-        {
-            return true;
-        }
-
-        this.discs = mentes.discs;
-        return false;
-
-    }
-    public override int OperátorokSzáma()
-    {
-        return 13;
-    }
-
-    public override bool SzuperOperátor(int i)
-    {
-        switch (i)
-        {
-            case 0: return op(0);
-            case 1: return op(1);
-            case 2: return op(2);
-            case 3: return op(3);
-            case 4: return op(4);
-            case 5: return op(5);
-            case 6: return op(6);
-            case 7: return op(7);
-            case 8: return op(8);
-            case 9: return op(9);
-            case 10: return op(10);
-            case 11: return op(11);
-            case 12: return op(12);
-            //case 13: return op(13); // a 13-as index az a 0-s index. Nem 14 operátorod van, hanem csak 13
-            default: return false;
-        }
-    }
-    public override string ToString()
-    {
-        return discs;
-    }
-
-    public override bool Equals(object a)
-    {
-        DiscFlipper aa = (DiscFlipper)a;
-        return aa.discs == discs;
-    }
-
-    public override int GetHashCode()
-    {
-        return discs.GetHashCode();
-    }
-}
-
-
-/// <summary>
-/// A csúcs tartalmaz egy állapotot, a csúcs mélységét, és a csúcs szülőjét.
-/// Így egy csúcs egy egész utat reprezentál a start csúcsig.
-/// </summary>
 class Csúcs
 {
     // A csúcs tartalmaz egy állapotot, a mélységét és a szülőjét
@@ -225,12 +98,6 @@ class Csúcs
     }
 }
 
-/// <summary>
-/// Minden gráfkereső algoritmus őse.
-/// A gráfkeresőknek csak a Keresés metódust kell megvalósítaniuk.
-/// Ez visszaad egy terminális csúcsot, ha talált megoldást, egyébként null értékkel tér vissza.
-/// A terminális csúcsból a szülő referenciákon felfelé haladva áll elő a megoldás.
-/// </summary>
 abstract class GráfKereső
 {
     private Csúcs startCsúcs; // A start csúcs csúcs.
@@ -276,91 +143,6 @@ abstract class GráfKereső
     }
 }
 
-/// <summary>
-/// A backtrack gráfkereső algoritmust megvalósító osztály.
-/// A három alap backtrack algoritmust egyben tartalmazza. Ezek
-/// - az alap backtrack
-/// - mélységi korlátos backtrack
-/// - emlékezetes backtrack
-/// Az ág-korlátos backtrack nincs megvalósítva.
-/// </summary>
-class BackTrack : GráfKereső
-{
-    int korlát; // Ha nem nulla, akkor mélységi korlátos kereső.
-    bool emlékezetes; // Ha igaz, emlékezetes kereső.
-    public BackTrack(Csúcs startCsúcs, int korlát, bool emlékezetes) : base(startCsúcs)
-    {
-        this.korlát = korlát;
-        this.emlékezetes = emlékezetes;
-    }
-    // nincs mélységi korlát, se emlékezet
-    public BackTrack(Csúcs startCsúcs) : this(startCsúcs, 0, false) { }
-    // mélységi korlátos kereső
-    public BackTrack(Csúcs startCsúcs, int korlát) : this(startCsúcs, korlát, false) { }
-    // emlékezetes kereső
-    public BackTrack(Csúcs startCsúcs, bool emlékezetes) : this(startCsúcs, 0, emlékezetes) { }
-    // A keresés a start csúcsból indul.
-    // Egy terminális csúcsot ad vissza. A start csúcsból el lehet jutni ebbe a terminális csúcsba.
-    // Ha nincs ilyen, akkor null értéket ad vissza.
-    public override Csúcs Keresés() { return Keresés(GetStartCsúcs()); }
-    // A kereső algoritmus rekurzív megvalósítása.
-    // Mivel rekurzív, ezért a visszalépésnek a "return null" felel meg.
-    private Csúcs Keresés(Csúcs aktCsúcs)
-    {
-        int mélység = aktCsúcs.GetMélység();
-        // mélységi korlát vizsgálata
-        if (korlát > 0 && mélység >= korlát) return null;
-        // emlékezet használata kör kiszűréséhez
-        Csúcs aktSzülő = null;
-        if (emlékezetes) aktSzülő = aktCsúcs.GetSzülő();
-        while (aktSzülő != null)
-        {
-            // Ellenőrzöm, hogy jártam-e ebben az állapotban. Ha igen, akkor visszalépés.
-            if (aktCsúcs.Equals(aktSzülő)) return null;
-            // Visszafelé haladás a szülői láncon.
-            aktSzülő = aktSzülő.GetSzülő();
-        }
-        if (aktCsúcs.TerminálisCsúcsE())
-        {
-            // Megvan a megoldás, vissza kell adni a terminális csúcsot.
-            return aktCsúcs;
-        }
-        // Itt hívogatom az alapoperátorokat a szuper operátoron
-        // keresztül. Ha valamelyik alkalmazható, akkor új csúcsot
-        // készítek, és meghívom önmagamat rekurzívan.
-        for (int i = 0; i < aktCsúcs.OperátorokSzáma(); i++)
-        {
-            // Elkészítem az új gyermek csúcsot.
-            // Ez csak akkor lesz kész, ha alkalmazok rá egy alkalmazható operátort is.
-            Csúcs újCsúcs = new Csúcs(aktCsúcs);
-            // Kipróbálom az i.dik alapoperátort. Alkalmazható?
-            if (újCsúcs.SzuperOperátor(i))
-            {
-                // Ha igen, rekurzívan meghívni önmagam az új csúcsra.
-                // Ha nem null értéket ad vissza, akkor megvan a megoldás.
-                // Ha null értéket, akkor ki kell próbálni a következő alapoperátort.
-                Csúcs terminális = Keresés(újCsúcs);
-                if (terminális != null)
-                {
-                    // Visszaadom a megoldást képviselő terminális csúcsot.
-                    return terminális;
-                }
-                // Az else ágon kellene visszavonni az operátort.
-                // Erre akkor van szükség, ha az új gyermeket létrehozásában nem lenne klónozást.
-                // Mivel klónoztam, ezért ez a rész üres.
-            }
-        }
-        // Ha kipróbáltam az összes operátort és egyik se vezetett megoldásra, akkor visszalépés.
-        // A visszalépés hatására eggyel feljebb a következő alapoperátor kerül sorra.
-        return null;
-    }
-}
-
-/// <summary>
-/// Mélységi keresést megvalósító gráfkereső osztály.
-/// Ez a megvalósítása a mélységi keresésnek felteszi, hogy a start csúcs nem terminális csúcs.
-/// A nyílt csúcsokat veremben tárolja.
-/// </summary>
 class MélységiKeresés : GráfKereső
 {
     // Mélységi keresésnél érdemes a nyílt csúcsokat veremben tárolni,
@@ -426,6 +208,121 @@ class MélységiKeresés : GráfKereső
             // Ha nincs kör, akkor felesleges C-t zárttá minősíteni.
         }
         return null;
+    }
+}
+// Keretrendszer vége
+
+class DiscFlipper : AbsztraktÁllapot                        // 2.40
+{
+
+    private string discs;
+
+    public DiscFlipper(string discOrder)
+    {
+        // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
+        // Annak érdekében, hogy ne kelljen a deep clone-al foglalkozni, a korongokat egy stringben tárolom
+        discs = discOrder;
+        Console.WriteLine("Kezdeti állapot: " + this.ToString());
+    }
+
+    public override bool ÁllapotE()
+    {
+        // Nincsenek különösebb feltételek megadva, illetve az operátor művelet is úgy van megírva, hogy ne lépjen ki az állapottérből, így egy alapvizsgálat
+        // lett megadva, igaz, ha összesen 13 korongunk van
+        return discs.Length == 13;
+    }
+    public override bool CélÁllapotE()
+    {
+        // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
+        return discs == "KPPPPPPPPPPPP";
+    }
+
+    private bool PreOp(int startPosition)
+    {
+        // Nincs a feladatban különösebb bemenő/előzetes feltétel, így csak azt vizsgálom, hogy a startposition a tömb határain belül van-e
+        return startPosition < discs.Length;
+    }
+
+    private char flipString(char Color)
+    {
+        // A korong fordítása az adott pozícióban        
+        if (Color == char.Parse("P"))
+        {
+            return char.Parse("K");
+        }
+
+        return char.Parse("P");
+    }
+    private bool op(int startPosition)
+    {
+        if (!PreOp(startPosition)) return false;
+        DiscFlipper mentes = (DiscFlipper)Clone();
+
+        Console.WriteLine();
+        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
+        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
+        for (int i = 0; i < 4; i++)
+        {
+            // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
+            // a körkörös elrendezést szimulálva
+            StringBuilder stringBuilder = new StringBuilder(discs);
+            char discAtPosition = discs[(startPosition + i) % 13];
+            char flippedDisc = flipString(discAtPosition);
+            stringBuilder[(startPosition + i) % 13] = flippedDisc;
+            discs = stringBuilder.ToString();
+        }
+        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
+        Console.WriteLine();
+
+        
+        if (ÁllapotE())
+        {
+            return true;
+        }
+
+        this.discs = mentes.discs;
+        return false;
+
+    }
+    public override int OperátorokSzáma()
+    {
+        return 13;
+    }
+
+    public override bool SzuperOperátor(int i)
+    {
+        switch (i)
+        {
+            case 0: return op(0);
+            case 1: return op(1);
+            case 2: return op(2);
+            case 3: return op(3);
+            case 4: return op(4);
+            case 5: return op(5);
+            case 6: return op(6);
+            case 7: return op(7);
+            case 8: return op(8);
+            case 9: return op(9);
+            case 10: return op(10);
+            case 11: return op(11);
+            case 12: return op(12);
+            default: return false;
+        }
+    }
+    public override string ToString()
+    {
+        return discs;
+    }
+
+    public override bool Equals(object a)
+    {
+        DiscFlipper aa = (DiscFlipper)a;
+        return aa.discs == discs;
+    }
+
+    public override int GetHashCode()
+    {
+        return discs.GetHashCode();
     }
 }
 
