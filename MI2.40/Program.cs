@@ -212,15 +212,21 @@ class MélységiKeresés : GráfKereső
 }
 // Keretrendszer vége
 
+
+
+
+
+
+
+
+
 class DiscFlipper : AbsztraktÁllapot                        // 2.40
 {
-
+    // Annak érdekében, hogy ne kelljen a deep clone-al foglalkozni, a korongokat egy stringben tárolom
     private string discs;
 
     public DiscFlipper(string discOrder)
     {
-        // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
-        // Annak érdekében, hogy ne kelljen a deep clone-al foglalkozni, a korongokat egy stringben tárolom
         discs = discOrder;
         Console.WriteLine("Kezdeti állapot: " + this.ToString());
     }
@@ -256,6 +262,7 @@ class DiscFlipper : AbsztraktÁllapot                        // 2.40
     private bool op(int startPosition)
     {
         if (!PreOp(startPosition)) return false;
+
         DiscFlipper mentes = (DiscFlipper)Clone();
 
         Console.WriteLine();
@@ -309,6 +316,7 @@ class DiscFlipper : AbsztraktÁllapot                        // 2.40
             default: return false;
         }
     }
+
     public override string ToString()
     {
         return discs;
@@ -326,6 +334,14 @@ class DiscFlipper : AbsztraktÁllapot                        // 2.40
     }
 }
 
+
+
+
+
+
+
+
+
 class Program
 {
     static void Main(string[] args)
@@ -334,6 +350,7 @@ class Program
         GráfKereső kereső;
 
         Console.WriteLine("Korongforgató 2.40-es feladat megoldása");
+        // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
         startCsúcs = new Csúcs(new DiscFlipper("PPPPPPPPPPPPK"));
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         kereső = new MélységiKeresés(startCsúcs, true);
