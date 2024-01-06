@@ -43,110 +43,6 @@ abstract class AbsztraktÁllapot : ICloneable
     public override int GetHashCode() { return base.GetHashCode(); }
 }
 
-/// <summary>
-/// A VakÁllapot csak a szemléltetés kedvért van itt.
-/// Megmutatja, hogy kell az operátorokat megírni és bekötni a szuper operátorba.
-/// </summary>
-
-/*
-abstract class VakÁllapot : AbsztraktÁllapot
-{
-    // Itt kell megadni azokat a mezőket, amelyek tartalmazzák a belső állapotot.
-    // Az operátorok belső állapot átmenetet hajtanak végre.
-    // Először az alapoperátorokat kell megírni.
-    // Minden operátornak van előfeltétele.
-    // Minden operátor utófeltétele megegyezik az ÁllapotE predikátummal.
-    // Az operátor igazat ad vissza, ha alkalmazható, hamisat, ha nem alkalmazható.
-    // Egy operátor alkalmazható, ha a belső állapotra igaz
-    // az előfeltétele és az állapotátmenet után igaz az utófeltétele.
-    // Ez az első alapoperátor.
-    private bool op1()
-    {
-        // Ha az előfeltétel hamis, akkor az operátor nem alkalmazható.
-        if (!preOp1()) return false;
-        // állapot átmenet
-        //
-        // TODO: Itt kell kiegészíteni a kódot!
-        //
-        // Utófeltétel vizsgálata, ha igaz, akkor alkalmazható az operátor.
-        if (ÁllapotE()) return true;
-        // Egyébként vissza kell vonni a belső állapot átmenetet,
-        //
-        // TODO: Itt kell kiegészíteni a kódot!
-        //
-        // és vissza kell adni, hogy nem alkalmazható az operátor.
-        return false;
-    }
-    // Az első alapoperátor előfeltétele. Az előfeltétel neve általában ez: pre+operátor neve.
-    // Ez segíti a kód megértését, de nyugodtan eltérhetünk ettől.
-    private bool preOp1()
-    {
-        // Ha igaz az előfeltétel, akkor igazat ad vissza.
-        return true;
-    }
-    // Egy másik operátor.
-    private bool op2()
-    {
-        if (!preOp2()) return false;
-        // Állapot átmenet:
-        // TODO: Itt kell kiegészíteni a kódot!
-        if (ÁllapotE()) return true;
-        // Egyébként vissza kell vonni a belső állapot átmenetet:
-        // TODO: Itt kell kiegészíteni a kódot!
-        return false;
-    }
-    private bool preOp2()
-    {
-        // Ha igaz az előfeltétel, akkor igazat ad vissza.
-        return true;
-    }
-    // Nézzük, mi a helyzet, ha az operátornak van paramétere.
-    // Ilyenkor egy operátor több alapoperátornak felel meg.
-    private bool op3(int i)
-    {
-        // Az előfeltételt ugyanazokkal a pereméterekkel kell hívni, mint magát az operátort.
-        if (!preOp3(i)) return false;
-        // Állapot átmenet:
-        // TODO: Itt kell kiegészíteni a kódot!
-        if (ÁllapotE()) return true;
-        // egyébként vissza kell vonni a belső állapot átmenetet
-        // TODO: Itt kell kiegészíteni a kódot!
-        return false;
-    }
-    // Az előfeltétel paraméterlistája megegyezik az operátor paraméterlistájával.
-    private bool preOp3(int i)
-    {
-        // Ha igaz az előfeltétel, akkor igazat ad vissza. Az előfeltétel függ a paraméterektől.
-        return true;
-    }
-    // Ez a szuper operátor. Ezen keresztül lehet hívni az alapoperátorokat.
-    // Az i paraméterrel mondjuk meg, hanyadik operátort akarjuk hívni.
-    // Általában egy for ciklusból hívjuk, ami 0-tól az OperátorokSzáma()-ig fut.
-    public override bool SzuperOperátor(int i)
-    {
-        switch (i)
-        {
-            // Itt kell felsorolnom az összes alapoperátort.
-            // Ha egy új operátort veszek fel, akkor ide is fel kell venni.
-            case 0: return op1();
-            case 1: return op2();
-            // A paraméteres operátorok több alap operátornak megfelelnek, ezért itt több sor is tartozik hozzájuk.
-            // Hogy hány sor, az feladat függő.
-            case 3: return op3(0);
-            case 4: return op3(1);
-            case 5: return op3(2);
-            default: return false;
-        }
-    }
-    // Visszaadja az alap operátorok számát.
-    public override int OperátorokSzáma()
-    {
-        // Az utolsó case számát kell itt visszaadni.
-        // Ha bővítjük az operátorok számát, ezt a számot is növelni kell.
-        return 5;
-    }
-}
-*/
 
 
 
@@ -163,7 +59,7 @@ class DiscFlipper : AbsztraktÁllapot
         // @isti: itt egy "collection expression"-el hoztam létre a tömböt, ez tetszeni fog a tanárnak, mert olyan metodika,
         // amit nem ismer, cserébe átlátható :)
         discs = discOrder;
-        Console.WriteLine("START:" + this.ToString());
+        Console.WriteLine("Kezdeti állapot: " + this.ToString());
     }
 
     public override bool ÁllapotE()
@@ -181,8 +77,7 @@ class DiscFlipper : AbsztraktÁllapot
 
     private bool PreOp(int startPosition)
     {
-        // Nincs a feladatban különösebb bemenő/előzetes feltétel
-        // @isti: szerintem annyit lehetne előfeltételezni, hogy a startposition az a (tömb hossza-1)-e?
+        // Nincs a feladatban különösebb bemenő/előzetes feltétel, így csak azt vizsgálom, hogy a startposition a tömb határain belül van-e
         return startPosition < discs.Length;
     }
 
@@ -197,13 +92,12 @@ class DiscFlipper : AbsztraktÁllapot
     }
     private bool op(int startPosition)
     {
-        // Bent marad a kódban, de valójában nincs szükség klónozásra, mert az előzetes feltétel mindig teljesül
         if (!PreOp(startPosition)) return false;
         DiscFlipper mentes = (DiscFlipper)Clone();
 
-        //Console.WriteLine();
-        //Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
-        //Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
+        Console.WriteLine();
+        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
+        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
         for (int i = 0; i < 4; i++)
         {
             // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
@@ -214,11 +108,10 @@ class DiscFlipper : AbsztraktÁllapot
             stringBuilder[(startPosition + i) % 13] = flippedDisc;
             discs = stringBuilder.ToString();
         }
-        //Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
-        //Console.WriteLine();
+        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
+        Console.WriteLine();
 
         
-        // Bent marad a kódban, bár nem tudunk valójában kilépni az állapottérből
         if (ÁllapotE())
         {
             return true;
@@ -311,7 +204,7 @@ class Csúcs
         return állapot.Equals(cs.állapot);
     }
     public override int GetHashCode() { return állapot.GetHashCode(); }
-    public override String ToString() { return "X" + állapot.ToString(); }
+    public override String ToString() { return "-> " + állapot.ToString(); }
     // Alkalmazza az összes alkalmazható operátort.
     // Visszaadja az így előálló új csúcsokat.
     public List<Csúcs> Kiterjesztes()
