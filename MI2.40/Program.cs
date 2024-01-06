@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using System.Text;
 /// <summary>
 /// Minden állapot osztály őse.
 /// </summary>
@@ -154,12 +155,14 @@ abstract class VakÁllapot : AbsztraktÁllapot
 class DiscFlipper : AbsztraktÁllapot
 {
 
-    private bool[] discs;
+    private string discs;
 
-    public DiscFlipper()
+    public DiscFlipper(string discOrder)
     {
         // Kezdetben minden korong piros oldala van felfelé, kivéve a jelölt korongot a 13. pozícióban.
-        discs = new bool[13] { true, true, true, true, true, true, true, true, true, true, true, true, false };
+        // @isti: itt egy "collection expression"-el hoztam létre a tömböt, ez tetszeni fog a tanárnak, mert olyan metodika,
+        // amit nem ismer, cserébe átlátható :)
+        discs = discOrder;
         Console.WriteLine("START:" + this.ToString());
     }
 
@@ -172,15 +175,25 @@ class DiscFlipper : AbsztraktÁllapot
     public override bool CélÁllapotE()
     {
         // A célállapot az, hogy minden korong piros oldala van felfelé, kivéve a korongot az 1. pozícióban
-        bool[] targetState = discs = new bool[13] { false, true, true, true, true, true, true, true, true, true, true, true, true };
 
-        return discs.SequenceEqual(targetState);
+        return discs == "KPPPPPPPPPPPP";
     }
 
     private bool PreOp(int startPosition)
     {
         // Nincs a feladatban különösebb bemenő/előzetes feltétel
-        return true;
+        // @isti: szerintem annyit lehetne előfeltételezni, hogy a startposition az a (tömb hossza-1)-e?
+        return startPosition < discs.Length;
+    }
+
+    private char flipString(char Color)
+    {
+        if (Color == char.Parse("P"))
+        {
+            return char.Parse("K");
+        }
+
+        return char.Parse("P");
     }
     private bool op(int startPosition)
     {
@@ -188,17 +201,21 @@ class DiscFlipper : AbsztraktÁllapot
         if (!PreOp(startPosition)) return false;
         DiscFlipper mentes = (DiscFlipper)Clone();
 
-        Console.WriteLine();
-        Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
-        Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
+        //Console.WriteLine();
+        //Console.WriteLine("Kiinduló helyzet:        " + this.ToString());
+        //Console.WriteLine("Fordítás pozíciója:      " + (startPosition+1));
         for (int i = 0; i < 4; i++)
         {
             // A korongok megfordítása, az óramutató járásával megegyező irányban figyelve arra, hogy a sor végére érve az elejéről kezdjük
             // a körkörös elrendezést szimulálva
-            discs[(startPosition + i) % 13] = !discs[(startPosition + i) % 13];
+            StringBuilder stringBuilder = new StringBuilder(discs);
+            char discAtPosition = discs[(startPosition + i) % 13];
+            char flippedDisc = flipString(discAtPosition);
+            stringBuilder[(startPosition + i) % 13] = flippedDisc;
+            discs = stringBuilder.ToString();
         }
-        Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
-        Console.WriteLine();
+        //Console.WriteLine("Fordítás utáni helyzet:  " + this.ToString());
+        //Console.WriteLine();
 
         
         // Bent marad a kódban, bár nem tudunk valójában kilépni az állapottérből
@@ -206,11 +223,10 @@ class DiscFlipper : AbsztraktÁllapot
         {
             return true;
         }
-        else
-        {
-            this.discs = mentes.discs;
-            return false;
-        }
+
+        this.discs = mentes.discs;
+        return false;
+
     }
     public override int OperátorokSzáma()
     {
@@ -234,24 +250,19 @@ class DiscFlipper : AbsztraktÁllapot
             case 10: return op(10);
             case 11: return op(11);
             case 12: return op(12);
-            case 13: return op(13);
+            //case 13: return op(13); // a 13-as index az a 0-s index. Nem 14 operátorod van, hanem csak 13
             default: return false;
         }
     }
     public override string ToString()
     {
-        string returnString = "";
-        foreach (var disc in discs)
-        {
-            returnString += disc ? "P " : "K ";
-        }
-        return returnString;
+        return discs;
     }
 
     public override bool Equals(object a)
     {
         DiscFlipper aa = (DiscFlipper)a;
-        return aa.discs.SequenceEqual(discs);
+        return aa.discs == discs;
     }
 
     public override int GetHashCode()
@@ -300,7 +311,7 @@ class Csúcs
         return állapot.Equals(cs.állapot);
     }
     public override int GetHashCode() { return állapot.GetHashCode(); }
-    public override String ToString() { return állapot.ToString(); }
+    public override String ToString() { return "X" + állapot.ToString(); }
     // Alkalmazza az összes alkalmazható operátort.
     // Visszaadja az így előálló új csúcsokat.
     public List<Csúcs> Kiterjesztes()
@@ -533,7 +544,7 @@ class Program
         GráfKereső kereső;
 
         Console.WriteLine("Korongforgató 2.40-es feladat megoldása");
-        startCsúcs = new Csúcs(new DiscFlipper());
+        startCsúcs = new Csúcs(new DiscFlipper("PPPPPPPPPPPPK"));
         Console.WriteLine("A kereső egy mélységi keresés körfigyeléssel.");
         kereső = new MélységiKeresés(startCsúcs, true);
         kereső.megoldásKiírása(kereső.Keresés());
